@@ -73,6 +73,8 @@ class ZibalGateway implements GatewayInterface
     public function purchase(): string
     {
         $response = Http::acceptJson()
+            ->timeout(30)
+            ->verify(true)
             ->post(self::BASE_URL . self::PURCHASE_ENDPOINT, $this->buildPurchaseData());
 
         $body = $response->json();
@@ -106,6 +108,8 @@ class ZibalGateway implements GatewayInterface
     public function verify(): ReceiptInterface
     {
         $response = Http::acceptJson()
+            ->timeout(30)
+            ->verify(true)
             ->post(self::BASE_URL . self::VERIFY_ENDPOINT, $this->buildVerifyData());
 
         $body = $response->json();

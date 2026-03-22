@@ -1,6 +1,6 @@
 # LaraPardakht
 
-A modern, extensible payment gateway integration package for Laravel 12, supporting Iranian payment providers.
+A modern, extensible payment gateway integration package for Laravel 11, 12, and 13, supporting Iranian payment providers.
 
 ## Features
 
@@ -10,6 +10,7 @@ A modern, extensible payment gateway integration package for Laravel 12, support
 - **Events** — fires events after purchase and verification for easy integration
 - **Runtime configuration** — switch drivers and override settings on the fly
 - **Typed exceptions** — distinct exception classes for different failure scenarios
+- **Security first** — SSL/TLS verification, URL validation, input sanitization included
 
 ## Supported Gateways
 
@@ -22,8 +23,8 @@ More gateways coming soon! You can also [create custom drivers](#creating-custom
 
 ## Requirements
 
-- PHP 8.2+
-- Laravel 11 or 12
+- PHP 8.2, 8.3, or 8.4
+- Laravel 11, 12, or 13
 
 ## Installation
 

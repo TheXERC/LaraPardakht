@@ -69,6 +69,8 @@ class ZarinpalGateway implements GatewayInterface
     public function purchase(): string
     {
         $response = Http::acceptJson()
+            ->timeout(30)
+            ->verify(true)
             ->post($this->getBaseUrl() . self::PURCHASE_ENDPOINT, $this->buildPurchaseData());
 
         $body = $response->json();
@@ -107,6 +109,8 @@ class ZarinpalGateway implements GatewayInterface
     public function verify(): ReceiptInterface
     {
         $response = Http::acceptJson()
+            ->timeout(30)
+            ->verify(true)
             ->post($this->getBaseUrl() . self::VERIFY_ENDPOINT, $this->buildVerifyData());
 
         $body = $response->json();

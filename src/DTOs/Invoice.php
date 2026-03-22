@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace LaraPardakht\DTOs;
 
 use LaraPardakht\Contracts\InvoiceInterface;
+use LaraPardakht\Utilities\InvoiceValidator;
+use LaraPardakht\Utilities\UrlValidator;
 use Ramsey\Uuid\Uuid;
 
 /**
@@ -37,7 +39,7 @@ class Invoice implements InvoiceInterface
      */
     public function amount(int $amount): static
     {
-        $this->amount = $amount;
+        $this->amount = InvoiceValidator::validateAmount($amount);
 
         return $this;
     }
@@ -55,7 +57,7 @@ class Invoice implements InvoiceInterface
      */
     public function description(string $description): static
     {
-        $this->description = $description;
+        $this->description = InvoiceValidator::validateDescription($description);
 
         return $this;
     }
@@ -92,9 +94,12 @@ class Invoice implements InvoiceInterface
     public function detail(string|array $key, mixed $value = null): static
     {
         if (is_array($key)) {
-            $this->details = array_merge($this->details, $key);
+            $validated = InvoiceValidator::validateDetails($key);
+            $this->details = array_merge($this->details, $validated);
         } else {
-            $this->details[$key] = $value;
+            // Validate single detail
+            $validated = InvoiceValidator::validateDetails([$key => $value]);
+            $this->details[$key] = $validated[$key];
         }
 
         return $this;
@@ -149,7 +154,7 @@ class Invoice implements InvoiceInterface
      */
     public function callbackUrl(string $url): static
     {
-        $this->callbackUrl = $url;
+        $this->callbackUrl = UrlValidator::validateCallback($url);
 
         return $this;
     }
