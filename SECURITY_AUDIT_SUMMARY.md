@@ -11,13 +11,13 @@ This document summarizes all security improvements made to the LaraPardakht paym
 - `src/Drivers/Zibal/ZibalGateway.php`
 
 **What Changed**:
-- All HTTP requests now explicitly verify SSL/TLS certificates using `->verify(true)`
 - All HTTP requests have a 30-second timeout to prevent indefinite hanging
+- SSL/TLS certificate verification is always active (it is Laravel's HTTP client default; `withoutVerifying()` is never called)
 - Applied to all `purchase()` and `verify()` methods in both drivers
 
 **Why It Matters**:
-- Prevents man-in-the-middle attacks on payment data
-- Prevents resource exhaustion from unresponsive gateways
+- Prevents man-in-the-middle attacks on payment data (SSL on by default, never disabled)
+- Prevents resource exhaustion from unresponsive gateways (explicit 30-second timeout)
 - **Action for Users**: No changes needed - automatically applied to all requests
 
 **Example**:
@@ -29,8 +29,9 @@ $response = Http::acceptJson()
 // After  
 $response = Http::acceptJson()
     ->timeout(30)
-    ->verify(true)
     ->post($url, $data);
+// Note: SSL/TLS verification is Laravel's default — no explicit call required.
+// withoutVerifying() is deliberately never used.
 ```
 
 ---

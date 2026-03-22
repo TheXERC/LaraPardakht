@@ -5,7 +5,7 @@ This document outlines security practices and important changes for the LaraPard
 ## Security Features
 
 ### SSL/TLS Verification
-All HTTP requests to payment gateways have **explicit SSL/TLS certificate verification enabled** (`verify(true)`). This ensures secure communication and protects against man-in-the-middle attacks.
+All HTTP requests to payment gateways have **SSL/TLS certificate verification enabled**. Laravel's HTTP client verifies certificates by default and this package never calls `withoutVerifying()`. This ensures secure communication and protects against man-in-the-middle attacks.
 
 - **Status**: ✅ Enabled by default
 - **Verification**: All gateway API calls verify SSL certificates
@@ -93,7 +93,7 @@ try {
 ## Recent Security Updates
 
 ### Version 1.x
-- ✅ Added explicit SSL/TLS verification (`verify(true)`) to all HTTP calls
+- ✅ SSL/TLS certificate verification is always active (Laravel HTTP client default; `withoutVerifying()` is never called)
 - ✅ Added 30-second timeout to all gateway requests
 - ✅ Implemented URL validation for callback and redirect URLs
 - ✅ Enhanced exception handling to prevent sensitive data leakage

@@ -15,10 +15,11 @@ This breakdown allows for clear version control history, easy review, and abilit
 
 **Commit Message**:
 ```
-security: add explicit SSL/TLS verification and request timeouts
+security: add request timeouts; ensure SSL/TLS verification is never disabled
 
-- Add verify(true) to all HTTP requests to payment gateways
 - Add 30-second timeout to prevent indefinite connection hanging
+- SSL/TLS certificate verification is Laravel's HTTP client default;
+  withoutVerifying() is deliberately never called in any gateway method
 - Applied to both purchase() and verify() methods in Zarinpal and Zibal drivers
 - Protects against man-in-the-middle attacks and resource exhaustion
 - BREAKING: None (automatic security enhancement)
@@ -307,7 +308,7 @@ git revert <commit-5>
 git add src/Drivers/Zarinpal/ZarinpalGateway.php \
          src/Drivers/Zibal/ZibalGateway.php \
          SECURITY.md
-git commit -m "security: add explicit SSL/TLS and timeouts"
+git commit -m "security: add request timeouts and ensure SSL/TLS is never disabled"
 
 # Commit #2: URL Validation
 git add src/Utilities/UrlValidator.php \

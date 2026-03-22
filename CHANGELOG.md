@@ -7,7 +7,7 @@ All notable changes to the LaraPardakht package will be documented in this file.
 ### 🔒 Security
 
 #### Added
-- **Explicit SSL/TLS Verification**: All HTTP requests to payment gateways now explicitly verify SSL/TLS certificates using `verify(true)`. This prevents man-in-the-middle attacks and ensures secure payment processing.
+- **SSL/TLS Verification**: All HTTP requests to payment gateways always verify SSL/TLS certificates (Laravel's HTTP client verifies by default; `withoutVerifying()` is never called). This prevents man-in-the-middle attacks and ensures secure payment processing.
 - **Request Timeout Protection**: All HTTP requests to payment gateways now have a 30-second timeout to prevent indefinite hanging if a gateway becomes unresponsive.
 - **URL Validation**: Payment callback URLs and redirect URLs now undergo strict validation to ensure they are properly formatted and use HTTPS (except for localhost testing).
   - Callback URLs must use HTTPS (HTTP allowed only for localhost in development)

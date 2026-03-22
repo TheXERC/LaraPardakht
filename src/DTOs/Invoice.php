@@ -7,7 +7,6 @@ namespace LaraPardakht\DTOs;
 use LaraPardakht\Contracts\InvoiceInterface;
 use LaraPardakht\Utilities\InvoiceValidator;
 use LaraPardakht\Utilities\UrlValidator;
-use Ramsey\Uuid\Uuid;
 
 /**
  * Invoice data transfer object holding payment information.
