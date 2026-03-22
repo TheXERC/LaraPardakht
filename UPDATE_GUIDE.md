@@ -16,7 +16,7 @@ PAYMENT_CALLBACK_URL=https://yoursite.com/payment/callback
 ```
 
 ### What's New (All Automatic)
-- ✅ SSL/TLS verification enabled
+- ✅ SSL/TLS verification always active (Laravel default; never disabled)
 - ✅ 30-second timeout on requests
 - ✅ URL validation (HTTPS enforcement)
 - ✅ Input validation (amount, email, phone)
@@ -132,7 +132,7 @@ PAYMENT_CALLBACK_URL=https://yoursite.com/payment/callback
 ## Feature Details
 
 ### SSL/TLS Verification
-- ✅ All requests verify SSL certificates
+- ✅ All requests verify SSL certificates (Laravel HTTP client default; never disabled)
 - ✅ Prevents man-in-the-middle attacks
 - No action needed - automatic
 
@@ -256,9 +256,10 @@ Http::acceptJson()->post($url, $data);
 
 // After
 Http::acceptJson()
-    ->timeout(30)      // NEW: 30-second timeout
-    ->verify(true)     // NEW: SSL verification
+    ->timeout(30)      // NEW: explicit 30-second timeout
     ->post($url, $data);
+// Note: SSL/TLS certificate verification is Laravel's HTTP client default.
+// withoutVerifying() is never called, so certificates are always verified.
 ```
 
 ### URL Handling

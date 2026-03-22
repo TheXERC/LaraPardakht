@@ -11,10 +11,10 @@ LaraPardakht v1.0.0 brings comprehensive security enhancements, input validation
 
 ## 🔒 Security Enhancements
 
-### ✅ Explicit SSL/TLS Verification
-All HTTP requests to payment gateways now explicitly verify SSL/TLS certificates. This prevents man-in-the-middle attacks and ensures your payment data is secure.
+### ✅ SSL/TLS Verification Always Active
+All HTTP requests to payment gateways always verify SSL/TLS certificates. Laravel's HTTP client verifies certificates by default and this package never disables it (no `withoutVerifying()` calls). This prevents man-in-the-middle attacks and ensures your payment data is secure.
 
-- **Feature**: `verify(true)` on all gateway requests
+- **How**: SSL certificate verification is Laravel's HTTP client default; it is never disabled
 - **Benefit**: Enterprise-grade security for payment processing
 - **Action**: None - automatic
 
@@ -178,7 +178,7 @@ All known security issues have been addressed in this release.
 ## 📝 Detailed Change Log
 
 ### Security
-- Explicit SSL/TLS verification on all HTTP calls
+- Explicit SSL/TLS verification always active (never disabled)
 - 30-second timeout on gateway requests
 - HTTPS enforcement for payment URLs
 - Input validation for invoice data

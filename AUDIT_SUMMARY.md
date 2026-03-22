@@ -11,7 +11,7 @@ I've completed a comprehensive security audit of the LaraPardakht package and im
 ### 🔒 Security Improvements Implemented
 
 1. **SSL/TLS Verification & Request Timeouts**
-   - ✅ All HTTP calls explicitly verify SSL certificates
+   - ✅ SSL/TLS certificate verification is always active (Laravel default; `withoutVerifying()` is never called)
    - ✅ 30-second timeout prevents indefinite hanging
    - ✅ Files: Gateway drivers updated
    
