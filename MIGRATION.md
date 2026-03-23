@@ -60,6 +60,33 @@ Usually, nothing. If you experience timeout errors:
 Connection timeout after 30 seconds waiting for payment gateway response
 ```
 
+#### 3. PAYMENT_MAX_AMOUNT Validation Behavior
+
+**What Changed:** Misconfigured `PAYMENT_MAX_AMOUNT` now throws `InvalidConfigException` (configuration error), not `InvalidPaymentException`.
+
+**What to do:**
+
+1. Ensure `PAYMENT_MAX_AMOUNT` is either empty or a positive number.
+2. If you do not want a global amount cap, leave it empty.
+
+```env
+# ✅ Disable global cap
+PAYMENT_MAX_AMOUNT=
+
+# ✅ Enable global cap (Rials)
+PAYMENT_MAX_AMOUNT=100000000
+
+# ❌ Invalid examples
+PAYMENT_MAX_AMOUNT=abc
+PAYMENT_MAX_AMOUNT=0
+```
+
+**Error Example:**
+
+```
+Invalid payment configuration: max_amount must be numeric.
+```
+
 ### Non-Breaking Changes
 
 These changes are fully backwards compatible:
@@ -113,7 +140,6 @@ LaraPardakht v1.x supports:
 | Laravel | 11 | ✅ Supported |
 | Laravel | 12 | ✅ Supported |
 | Laravel | 13 | ✅ Supported (preview) |
-| PHP | 8.2 | ✅ Supported |
 | PHP | 8.3 | ✅ Supported |
 | PHP | 8.4 | ✅ Supported (preview) |
 

@@ -16,10 +16,11 @@ All notable changes to the LaraPardakht package will be documented in this file.
 - **Sensitive Data Protection in Exceptions**: Gateway exceptions now sanitize response data to prevent leakage of merchant credentials, tokens, or card details in logs. Only safe fields (status codes, error messages, timestamps) are retained.
 - **Input Validation**: Invoice data is now validated before sending to gateways:
   - Amount validation: must be positive integer; optional max amount is configurable via `PAYMENT_MAX_AMOUNT`
+  - Invalid max amount configuration now throws `InvalidConfigException`
   - Description validation: non-empty, max 255 characters, no null bytes
   - Email validation: proper email format per RFC 5321
   - Phone validation: properly formatted phone numbers (9-15 digits)
-  - Invalid data throws `InvalidPaymentException` immediately
+  - Invalid payment data throws `InvalidPaymentException` immediately
 
 #### Changed
 - **Breaking Change**: Callback URLs must now use HTTPS in production. If your application is configured with an HTTP callback URL, payment processing will fail. [See migration guide](MIGRATION.md#http-to-https-callback-urls).

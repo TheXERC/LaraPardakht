@@ -5,6 +5,7 @@ declare(strict_types=1);
 use LaraPardakht\DTOs\Invoice;
 use LaraPardakht\DTOs\Receipt;
 use LaraPardakht\DTOs\RedirectResponse;
+use LaraPardakht\Exceptions\InvalidConfigException;
 use LaraPardakht\Exceptions\InvalidPaymentException;
 
 uses(\LaraPardakht\Tests\TestCase::class);
@@ -34,6 +35,24 @@ test('invoice enforces configured max amount', function () {
 
     expect(fn () => $invoice->amount(100_001))
         ->toThrow(InvalidPaymentException::class, 'configured maximum limit');
+});
+
+test('invoice throws InvalidConfigException for non numeric max amount configuration', function () {
+    config()->set('larapardakht.max_amount', 'not-a-number');
+
+    $invoice = new Invoice();
+
+    expect(fn () => $invoice->amount(100_000))
+        ->toThrow(InvalidConfigException::class, 'max_amount must be numeric');
+});
+
+test('invoice throws InvalidConfigException for non positive max amount configuration', function () {
+    config()->set('larapardakht.max_amount', 0);
+
+    $invoice = new Invoice();
+
+    expect(fn () => $invoice->amount(100_000))
+        ->toThrow(InvalidConfigException::class, 'max_amount must be greater than 0');
 });
 
 test('invoice fluent API is chainable', function () {

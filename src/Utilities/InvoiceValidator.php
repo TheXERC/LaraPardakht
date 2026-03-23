@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LaraPardakht\Utilities;
 
+use LaraPardakht\Exceptions\InvalidConfigException;
 use LaraPardakht\Exceptions\InvalidPaymentException;
 
 /**
@@ -25,7 +26,8 @@ class InvoiceValidator
      *
      * @return int The validated amount
      *
-     * @throws InvalidPaymentException If validation fails
+    * @throws InvalidPaymentException If amount validation fails
+    * @throws InvalidConfigException If max amount configuration is invalid
      */
     public static function validateAmount(int $amount): int
     {
@@ -42,7 +44,7 @@ class InvoiceValidator
 
         if ($configuredMax !== null && $configuredMax !== '') {
             if (! is_numeric($configuredMax)) {
-                throw new InvalidPaymentException(
+                throw new InvalidConfigException(
                     message: 'Invalid payment configuration: max_amount must be numeric.',
                     code: 500
                 );
@@ -51,7 +53,7 @@ class InvoiceValidator
             $maxAmount = (int) $configuredMax;
 
             if ($maxAmount <= 0) {
-                throw new InvalidPaymentException(
+                throw new InvalidConfigException(
                     message: 'Invalid payment configuration: max_amount must be greater than 0 when set.',
                     code: 500
                 );
