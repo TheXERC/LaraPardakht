@@ -5,6 +5,7 @@ declare(strict_types=1);
 use LaraPardakht\DTOs\Invoice;
 use LaraPardakht\DTOs\Receipt;
 use LaraPardakht\DTOs\RedirectResponse;
+use LaraPardakht\Exceptions\InvalidPaymentException;
 
 uses(\LaraPardakht\Tests\TestCase::class);
 
@@ -15,6 +16,24 @@ test('invoice fluent API sets and retrieves amount', function () {
     $invoice->amount(50000);
 
     expect($invoice->getAmount())->toBe(50000);
+});
+
+test('invoice supports large amount when max amount is not configured', function () {
+    config()->set('larapardakht.max_amount', null);
+
+    $invoice = new Invoice();
+    $invoice->amount(500_000_000);
+
+    expect($invoice->getAmount())->toBe(500_000_000);
+});
+
+test('invoice enforces configured max amount', function () {
+    config()->set('larapardakht.max_amount', 100_000);
+
+    $invoice = new Invoice();
+
+    expect(fn () => $invoice->amount(100_001))
+        ->toThrow(InvalidPaymentException::class, 'configured maximum limit');
 });
 
 test('invoice fluent API is chainable', function () {

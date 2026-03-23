@@ -284,3 +284,10 @@ test('fresh resets manager state', function () {
 
     Http::assertSentCount(2);
 });
+
+test('container resolves a fresh manager instance each time', function () {
+    $first = app(PaymentManager::class);
+    $second = app(PaymentManager::class);
+
+    expect($first)->not->toBe($second);
+});

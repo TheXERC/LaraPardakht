@@ -36,14 +36,33 @@ class InvoiceValidator
             );
         }
 
-        // Check for reasonable upper limit (100 million Rials = ~$2380 USD)
-        // Adjust this based on your business needs
-        $maxAmount = 100_000_000;
-        if ($amount > $maxAmount) {
-            throw new InvalidPaymentException(
-                message: "Invalid payment amount: amount exceeds maximum limit of {$maxAmount} Rials.",
-                code: 400
-            );
+        // Optional global maximum amount from package config.
+        // When null/empty, no global cap is enforced.
+        $configuredMax = config('larapardakht.max_amount');
+
+        if ($configuredMax !== null && $configuredMax !== '') {
+            if (! is_numeric($configuredMax)) {
+                throw new InvalidPaymentException(
+                    message: 'Invalid payment configuration: max_amount must be numeric.',
+                    code: 500
+                );
+            }
+
+            $maxAmount = (int) $configuredMax;
+
+            if ($maxAmount <= 0) {
+                throw new InvalidPaymentException(
+                    message: 'Invalid payment configuration: max_amount must be greater than 0 when set.',
+                    code: 500
+                );
+            }
+
+            if ($amount > $maxAmount) {
+                throw new InvalidPaymentException(
+                    message: "Invalid payment amount: amount exceeds configured maximum limit of {$maxAmount} Rials.",
+                    code: 400
+                );
+            }
         }
 
         return $amount;

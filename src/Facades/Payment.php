@@ -28,6 +28,13 @@ use LaraPardakht\PaymentManager;
 class Payment extends Facade
 {
     /**
+     * Resolve from the container on each call to avoid stale state in long-running runtimes.
+     *
+     * @var bool
+     */
+    protected static $cached = false;
+
+    /**
      * Get the registered name of the component.
      *
      * @return string

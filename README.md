@@ -23,7 +23,7 @@ More gateways coming soon! You can also [create custom drivers](#creating-custom
 
 ## Requirements
 
-- PHP 8.2, 8.3, or 8.4
+- PHP 8.3 or 8.4
 - Laravel 11, 12, or 13
 
 ## Installation
@@ -57,6 +57,9 @@ ZIBAL_SANDBOX=false
 
 # Shared
 PAYMENT_CALLBACK_URL=https://yoursite.com/payment/callback
+
+# Optional: global max amount in Rials (leave empty to disable cap)
+PAYMENT_MAX_AMOUNT=
 ```
 
 ## Usage

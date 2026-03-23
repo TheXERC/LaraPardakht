@@ -15,7 +15,7 @@ All notable changes to the LaraPardakht package will be documented in this file.
   - Invalid URLs will throw an `InvalidPaymentException`
 - **Sensitive Data Protection in Exceptions**: Gateway exceptions now sanitize response data to prevent leakage of merchant credentials, tokens, or card details in logs. Only safe fields (status codes, error messages, timestamps) are retained.
 - **Input Validation**: Invoice data is now validated before sending to gateways:
-  - Amount validation: must be positive integer within reasonable limits
+  - Amount validation: must be positive integer; optional max amount is configurable via `PAYMENT_MAX_AMOUNT`
   - Description validation: non-empty, max 255 characters, no null bytes
   - Email validation: proper email format per RFC 5321
   - Phone validation: properly formatted phone numbers (9-15 digits)
@@ -29,14 +29,17 @@ All notable changes to the LaraPardakht package will be documented in this file.
 
 #### Added
 - **Laravel 13 Support**: Package now supports Laravel 13 (in addition to Laravel 11 and 12)
-- **PHP 8.3/8.4 Support**: Package now explicitly supports PHP 8.3 and PHP 8.4 (in addition to PHP 8.2)
+- **PHP 8.3/8.4 Support**: Package now explicitly supports PHP 8.3 and PHP 8.4
 - **Orchestra Testbench 11**: Dev environment updated to support latest testing framework
 
 #### Changed
 - Updated version constraints in `composer.json`:
-  - PHP: `^8.2|^8.3|^8.4` (was `^8.2`)
+  - PHP: `^8.3|^8.4` (PHP 8.2 support removed)
   - Laravel: `^11.0|^12.0|^13.0` (was `^11.0|^12.0`)
   - Orchestra/Testbench: `^9.0|^10.0|^11.0` (was `^9.0|^10.0`)
+- Payment manager container binding changed from singleton to transient to avoid stale runtime state in long-running workers.
+- Payment facade now resolves the manager fresh per call (facade caching disabled) to prevent cross-operation state carryover.
+- Amount cap moved from hard-coded validator value to configurable `larapardakht.max_amount` (`PAYMENT_MAX_AMOUNT` env).
 
 ### Migration Guide
 
