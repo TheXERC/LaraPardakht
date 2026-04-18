@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use LaraPardakht\Contracts\ReceiptInterface;
 use LaraPardakht\Drivers\Zarinpal\ZarinpalGateway;
@@ -83,6 +84,18 @@ test('purchase failure throws PurchaseFailedException', function () {
 
     $gateway->purchase();
 })->throws(PurchaseFailedException::class);
+
+test('purchase connection exception throws PurchaseFailedException', function () {
+    Http::fake(function () {
+        throw new ConnectionException('Connection timed out.');
+    });
+
+    $gateway = createZarinpalGateway();
+    $invoice = createZarinpalInvoice();
+    $gateway->setInvoice($invoice);
+
+    $gateway->purchase();
+})->throws(PurchaseFailedException::class, 'Unable to connect to Zarinpal purchase endpoint.');
 
 test('purchase maps official error code to english message', function () {
     Http::fake([
@@ -224,8 +237,18 @@ test('verify with code 101 (already verified) still returns receipt', function (
 
     $receipt = $gateway->verify();
 
-    expect($receipt->getReferenceId())->toBe('201');
+    expect($receipt->getReferenceId())->toBe('201')
+        ->and($receipt->getRawData()['already_verified'])->toBeTrue();
 });
+
+test('verify requires amount greater than zero', function () {
+    $gateway = createZarinpalGateway();
+    $invoice = new Invoice();
+    $invoice->transactionId('A00000000000000000000000000001234567');
+    $gateway->setInvoice($invoice);
+
+    $gateway->verify();
+})->throws(InvalidPaymentException::class, 'Invoice amount is required and must be greater than zero before calling verify.');
 
 test('verify failure throws InvalidPaymentException', function () {
     Http::fake([
@@ -299,6 +322,19 @@ test('verify malformed response still throws InvalidPaymentException', function 
 
     $gateway->verify();
 })->throws(InvalidPaymentException::class);
+
+test('verify connection exception throws InvalidPaymentException', function () {
+    Http::fake(function () {
+        throw new ConnectionException('Connection timed out.');
+    });
+
+    $gateway = createZarinpalGateway();
+    $invoice = createZarinpalInvoice();
+    $invoice->transactionId('A00000000000000000000000000001234567');
+    $gateway->setInvoice($invoice);
+
+    $gateway->verify();
+})->throws(InvalidPaymentException::class, 'Unable to connect to Zarinpal verify endpoint.');
 
 // ── Sandbox Tests ───────────────────────────────────────────
 

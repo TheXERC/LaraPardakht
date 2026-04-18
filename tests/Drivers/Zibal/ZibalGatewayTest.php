@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use LaraPardakht\Contracts\ReceiptInterface;
 use LaraPardakht\Drivers\Zibal\ZibalGateway;
@@ -73,6 +74,18 @@ test('purchase failure throws PurchaseFailedException', function () {
 
     $gateway->purchase();
 })->throws(PurchaseFailedException::class);
+
+test('purchase connection exception throws PurchaseFailedException', function () {
+    Http::fake(function () {
+        throw new ConnectionException('Connection timed out.');
+    });
+
+    $gateway = createZibalGateway();
+    $invoice = createZibalInvoice();
+    $gateway->setInvoice($invoice);
+
+    $gateway->purchase();
+})->throws(PurchaseFailedException::class, 'Unable to connect to Zibal purchase endpoint.');
 
 test('purchase maps official error code to english message', function () {
     Http::fake([
@@ -244,8 +257,18 @@ test('verify with code 201 (already verified) still returns receipt', function (
 
     $receipt = $gateway->verify();
 
-    expect($receipt->getReferenceId())->toBe('123456789');
+    expect($receipt->getReferenceId())->toBe('123456789')
+        ->and($receipt->getRawData()['already_verified'])->toBeTrue();
 });
+
+test('verify requires amount greater than zero', function () {
+    $gateway = createZibalGateway();
+    $invoice = new Invoice();
+    $invoice->transactionId('15966442233311');
+    $gateway->setInvoice($invoice);
+
+    $gateway->verify();
+})->throws(InvalidPaymentException::class, 'Invoice amount is required and must be greater than zero before calling verify.');
 
 test('verify failure throws InvalidPaymentException', function () {
     Http::fake([
@@ -327,6 +350,19 @@ test('verify malformed response still throws InvalidPaymentException', function 
 
     $gateway->verify();
 })->throws(InvalidPaymentException::class);
+
+test('verify connection exception throws InvalidPaymentException', function () {
+    Http::fake(function () {
+        throw new ConnectionException('Connection timed out.');
+    });
+
+    $gateway = createZibalGateway();
+    $invoice = createZibalInvoice();
+    $invoice->transactionId('15966442233311');
+    $gateway->setInvoice($invoice);
+
+    $gateway->verify();
+})->throws(InvalidPaymentException::class, 'Unable to connect to Zibal verify endpoint.');
 
 // ── Sandbox Tests ───────────────────────────────────────────
 
