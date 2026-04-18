@@ -222,6 +222,8 @@ class ZarinpalGateway implements GatewayInterface
             $receiptRawData = [];
         }
 
+        $receiptRawData['already_verified'] = $code === self::ALREADY_VERIFIED_CODE;
+
         return new Receipt(
             referenceId: $referenceId,
             driver: 'zarinpal',
@@ -279,7 +281,7 @@ class ZarinpalGateway implements GatewayInterface
     {
         return [
             'merchant_id' => $this->settings['merchant_id'] ?? '',
-            'amount' => $this->invoice->getAmount(),
+            'amount' => $this->requirePositiveAmount(),
             'authority' => $this->requireTransactionId(),
         ];
     }
@@ -385,5 +387,24 @@ class ZarinpalGateway implements GatewayInterface
         }
 
         return $authority;
+    }
+
+    /**
+     * Ensure invoice amount is set before verify.
+     *
+     * @return int
+     * @throws InvalidPaymentException
+     */
+    protected function requirePositiveAmount(): int
+    {
+        $amount = $this->invoice->getAmount();
+
+        if ($amount <= 0) {
+            throw new InvalidPaymentException(
+                message: 'Invoice amount is required and must be greater than zero before calling verify.',
+            );
+        }
+
+        return $amount;
     }
 }
