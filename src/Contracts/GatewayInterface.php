@@ -34,6 +34,7 @@ interface GatewayInterface
      * Generate the redirect response to the gateway payment page.
      *
      * @return RedirectResponse
+     * @throws \LaraPardakht\Exceptions\InvalidPaymentException
      */
     public function pay(): RedirectResponse;
 
