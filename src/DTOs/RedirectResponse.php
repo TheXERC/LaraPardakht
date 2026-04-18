@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace LaraPardakht\DTOs;
 
+use LaraPardakht\Utilities\UrlValidator;
+
 /**
  * Represents a redirect response to a payment gateway page.
  */
@@ -18,7 +20,10 @@ class RedirectResponse
         protected readonly string $url,
         protected readonly array $data = [],
         protected readonly string $method = 'GET',
-    ) {}
+    ) {
+        // Validate the redirect URL for security
+        UrlValidator::validateRedirect($this->url);
+    }
 
     /**
      * Get the redirect URL.

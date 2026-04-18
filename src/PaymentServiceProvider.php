@@ -9,7 +9,7 @@ use Illuminate\Support\ServiceProvider;
 /**
  * Laravel service provider for the LaraPardakht payment package.
  *
- * Registers the PaymentManager as a singleton and publishes the config file.
+ * Registers the PaymentManager binding and publishes the config file.
  */
 class PaymentServiceProvider extends ServiceProvider
 {

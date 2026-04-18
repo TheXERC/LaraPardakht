@@ -1,0 +1,42 @@
+# Zarinpal Payment Gateway Documentation
+
+## Overview
+Zarinpal provides a comprehensive payment gateway service, allowing businesses to accept payments securely online.
+
+## Features
+- **Multiple Payment Methods**: Supports various payment methods including credit cards, wallets, and more.
+- **Transaction Management**: Users can manage their transactions and receive detailed reports.
+- **Custom Integration**: APIs and SDKs for different platforms for easier integration.
+
+## Getting Started
+1. **Create an Account**: Sign up on Zarinpal website.
+2. **API Key**: Obtain your API key from the dashboard after logging in.
+3. **Integration**: Follow the integration documentation provided in your dashboard.
+
+## API Endpoints
+### 1. Create Payment
+- **Endpoint**: `/payment/create`
+- **Method**: POST
+- **Parameters**:
+  - `amount`: Total amount to be charged.
+  - `callback_url`: URL to redirect after payment.
+  - `description`: Description of the transaction.
+
+### 2. Payment Verification
+- **Endpoint**: `/payment/verify`
+- **Method**: POST
+- **Parameters**:
+  - `payment_id`: ID of the payment to verify.
+  - `amount`: Amount that was initially requested.
+
+## Sample Request
+```json
+{
+  "amount": 10000,
+  "callback_url": "https://yourwebsite.com/callback",
+  "description": "Payment for order #12345"
+}
+```
+
+## Conclusion
+For more detailed documentation, including error codes and response formats, please refer to the complete API reference at Zarinpal's documentation page.
