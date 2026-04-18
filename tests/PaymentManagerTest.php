@@ -10,6 +10,7 @@ use LaraPardakht\DTOs\RedirectResponse;
 use LaraPardakht\Events\PaymentPurchased;
 use LaraPardakht\Events\PaymentVerified;
 use LaraPardakht\Exceptions\InvalidConfigException;
+use LaraPardakht\Exceptions\InvalidPaymentException;
 use LaraPardakht\PaymentManager;
 
 uses(\LaraPardakht\Tests\TestCase::class);
@@ -256,6 +257,12 @@ test('purchase and pay chain works', function () {
         ->and($redirect->getUrl())->toContain('A00000000000000000000000000001234567');
 });
 
+test('pay without transaction id throws InvalidPaymentException', function () {
+    $manager = app(PaymentManager::class);
+
+    $manager->amount(50000)->pay();
+})->throws(InvalidPaymentException::class);
+
 // ── Fresh State Tests ───────────────────────────────────────
 
 test('fresh resets manager state', function () {
@@ -281,6 +288,14 @@ test('fresh resets manager state', function () {
 
     // Reset and use default (zarinpal)
     $manager->fresh()->purchase((new Invoice())->amount(20000)->description('Second'));
+
+    Http::assertSent(function ($request) {
+        return str_contains($request->url(), 'gateway.zibal.ir/v1/request');
+    });
+
+    Http::assertSent(function ($request) {
+        return str_contains($request->url(), 'payment.zarinpal.com/pg/v4/payment/request.json');
+    });
 
     Http::assertSentCount(2);
 });

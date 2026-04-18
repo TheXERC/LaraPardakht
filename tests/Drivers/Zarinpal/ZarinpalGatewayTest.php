@@ -84,6 +84,39 @@ test('purchase failure throws PurchaseFailedException', function () {
     $gateway->purchase();
 })->throws(PurchaseFailedException::class);
 
+test('purchase maps official error code to english message', function () {
+    Http::fake([
+        'payment.zarinpal.com/pg/v4/payment/request.json' => Http::response([
+            'data' => [
+                'code' => -14,
+            ],
+            'errors' => [],
+        ]),
+    ]);
+
+    $gateway = createZarinpalGateway();
+    $invoice = createZarinpalInvoice();
+    $gateway->setInvoice($invoice);
+
+    $gateway->purchase();
+})->throws(PurchaseFailedException::class, 'The callback URL domain does not match the registered terminal domain.');
+
+test('purchase malformed response still throws PurchaseFailedException', function () {
+    Http::fake([
+        'payment.zarinpal.com/pg/v4/payment/request.json' => Http::response(
+            '<html>Bad Gateway</html>',
+            502,
+            ['Content-Type' => 'text/html'],
+        ),
+    ]);
+
+    $gateway = createZarinpalGateway();
+    $invoice = createZarinpalInvoice();
+    $gateway->setInvoice($invoice);
+
+    $gateway->purchase();
+})->throws(PurchaseFailedException::class);
+
 test('purchase sends metadata when details include mobile and email', function () {
     Http::fake([
         'payment.zarinpal.com/pg/v4/payment/request.json' => Http::response([
@@ -124,6 +157,14 @@ test('pay returns correct redirect URL', function () {
     expect($response)->toBeInstanceOf(RedirectResponse::class)
         ->and($response->getUrl())->toBe('https://payment.zarinpal.com/pg/StartPay/A00000000000000000000000000001234567');
 });
+
+test('pay throws InvalidPaymentException when transaction id is missing', function () {
+    $gateway = createZarinpalGateway();
+    $invoice = createZarinpalInvoice();
+    $gateway->setInvoice($invoice);
+
+    $gateway->pay();
+})->throws(InvalidPaymentException::class, 'Transaction ID (authority) is required before calling pay or verify.');
 
 // ── Verify Tests ────────────────────────────────────────────
 
@@ -188,6 +229,60 @@ test('verify failure throws InvalidPaymentException', function () {
                 'message' => 'Payment not successful.',
             ],
         ]),
+    ]);
+
+    $gateway = createZarinpalGateway();
+    $invoice = createZarinpalInvoice();
+    $invoice->transactionId('A00000000000000000000000000001234567');
+    $gateway->setInvoice($invoice);
+
+    $gateway->verify();
+})->throws(InvalidPaymentException::class);
+
+test('verify maps invalid authority code to english message', function () {
+    Http::fake([
+        'payment.zarinpal.com/pg/v4/payment/verify.json' => Http::response([
+            'data' => [
+                'code' => -54,
+            ],
+            'errors' => [],
+        ]),
+    ]);
+
+    $gateway = createZarinpalGateway();
+    $invoice = createZarinpalInvoice();
+    $invoice->transactionId('A00000000000000000000000000001234567');
+    $gateway->setInvoice($invoice);
+
+    $gateway->verify();
+})->throws(InvalidPaymentException::class, 'Invalid authority.');
+
+test('verify fails when successful response has no reference id', function () {
+    Http::fake([
+        'payment.zarinpal.com/pg/v4/payment/verify.json' => Http::response([
+            'data' => [
+                'code' => 100,
+                'message' => 'Verified',
+            ],
+            'errors' => [],
+        ]),
+    ]);
+
+    $gateway = createZarinpalGateway();
+    $invoice = createZarinpalInvoice();
+    $invoice->transactionId('A00000000000000000000000000001234567');
+    $gateway->setInvoice($invoice);
+
+    $gateway->verify();
+})->throws(InvalidPaymentException::class, 'Zarinpal verification succeeded but no reference ID was returned.');
+
+test('verify malformed response still throws InvalidPaymentException', function () {
+    Http::fake([
+        'payment.zarinpal.com/pg/v4/payment/verify.json' => Http::response(
+            '<html>Bad Gateway</html>',
+            502,
+            ['Content-Type' => 'text/html'],
+        ),
     ]);
 
     $gateway = createZarinpalGateway();

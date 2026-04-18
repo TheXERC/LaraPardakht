@@ -74,6 +74,37 @@ test('purchase failure throws PurchaseFailedException', function () {
     $gateway->purchase();
 })->throws(PurchaseFailedException::class);
 
+test('purchase maps official error code to english message', function () {
+    Http::fake([
+        'gateway.zibal.ir/v1/request' => Http::response([
+            'result' => 115,
+            'message' => 'ip شما در پنل کاربری ثبت نشده است.',
+        ]),
+    ]);
+
+    $gateway = createZibalGateway();
+    $invoice = createZibalInvoice();
+    $gateway->setInvoice($invoice);
+
+    $gateway->purchase();
+})->throws(PurchaseFailedException::class, 'Your IP address is not registered in Zibal panel.');
+
+test('purchase malformed response still throws PurchaseFailedException', function () {
+    Http::fake([
+        'gateway.zibal.ir/v1/request' => Http::response(
+            '<html>Bad Gateway</html>',
+            502,
+            ['Content-Type' => 'text/html'],
+        ),
+    ]);
+
+    $gateway = createZibalGateway();
+    $invoice = createZibalInvoice();
+    $gateway->setInvoice($invoice);
+
+    $gateway->purchase();
+})->throws(PurchaseFailedException::class);
+
 test('purchase sends optional fields when details provided', function () {
     Http::fake([
         'gateway.zibal.ir/v1/request' => Http::response([
@@ -110,6 +141,14 @@ test('pay returns correct redirect URL', function () {
     expect($response)->toBeInstanceOf(RedirectResponse::class)
         ->and($response->getUrl())->toBe('https://gateway.zibal.ir/start/15966442233311');
 });
+
+test('pay throws InvalidPaymentException when transaction id is missing', function () {
+    $gateway = createZibalGateway();
+    $invoice = createZibalInvoice();
+    $gateway->setInvoice($invoice);
+
+    $gateway->pay();
+})->throws(InvalidPaymentException::class, 'Transaction ID (trackId) is required before calling pay or verify.');
 
 // ── Verify Tests ────────────────────────────────────────────
 
@@ -183,6 +222,22 @@ test('verify failure throws InvalidPaymentException', function () {
     $gateway->verify();
 })->throws(InvalidPaymentException::class);
 
+test('verify maps code 202 to english message', function () {
+    Http::fake([
+        'gateway.zibal.ir/v1/verify' => Http::response([
+            'result' => 202,
+            'message' => 'سفارش پرداخت نشده یا ناموفق بوده است.',
+        ]),
+    ]);
+
+    $gateway = createZibalGateway();
+    $invoice = createZibalInvoice();
+    $invoice->transactionId('15966442233311');
+    $gateway->setInvoice($invoice);
+
+    $gateway->verify();
+})->throws(InvalidPaymentException::class, 'Order is not paid or payment was unsuccessful.');
+
 test('verify with invalid trackId throws InvalidPaymentException', function () {
     Http::fake([
         'gateway.zibal.ir/v1/verify' => Http::response([
@@ -198,6 +253,39 @@ test('verify with invalid trackId throws InvalidPaymentException', function () {
 
     $gateway->verify();
 })->throws(InvalidPaymentException::class, 'Invalid trackId.');
+
+test('verify fails when successful response has no reference id', function () {
+    Http::fake([
+        'gateway.zibal.ir/v1/verify' => Http::response([
+            'result' => 100,
+            'message' => 'success',
+        ]),
+    ]);
+
+    $gateway = createZibalGateway();
+    $invoice = createZibalInvoice();
+    $invoice->transactionId('15966442233311');
+    $gateway->setInvoice($invoice);
+
+    $gateway->verify();
+})->throws(InvalidPaymentException::class, 'Zibal verification succeeded but no reference ID was returned.');
+
+test('verify malformed response still throws InvalidPaymentException', function () {
+    Http::fake([
+        'gateway.zibal.ir/v1/verify' => Http::response(
+            '<html>Bad Gateway</html>',
+            502,
+            ['Content-Type' => 'text/html'],
+        ),
+    ]);
+
+    $gateway = createZibalGateway();
+    $invoice = createZibalInvoice();
+    $invoice->transactionId('15966442233311');
+    $gateway->setInvoice($invoice);
+
+    $gateway->verify();
+})->throws(InvalidPaymentException::class);
 
 // ── Sandbox Tests ───────────────────────────────────────────
 
