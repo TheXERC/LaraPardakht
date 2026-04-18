@@ -187,10 +187,28 @@ class PaymentManager
 
         $receipt = $gateway->verify();
 
-        // Fire event
-        event(new PaymentVerified($receipt, $this->getDriverName()));
+        if ($this->shouldDispatchVerifiedEvent($receipt)) {
+            // Fire event
+            event(new PaymentVerified($receipt, $this->getDriverName()));
+        }
 
         return $receipt;
+    }
+
+    /**
+     * Determine whether a successful verify operation should dispatch PaymentVerified.
+     *
+     * Already-verified gateway responses are valid but should not trigger duplicate
+     * verification side effects.
+     *
+     * @param ReceiptInterface $receipt
+     * @return bool
+     */
+    protected function shouldDispatchVerifiedEvent(ReceiptInterface $receipt): bool
+    {
+        $alreadyVerified = $receipt->getRawData()['already_verified'] ?? false;
+
+        return $alreadyVerified !== true;
     }
 
     /**
