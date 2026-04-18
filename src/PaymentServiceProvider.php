@@ -25,7 +25,9 @@ class PaymentServiceProvider extends ServiceProvider
             'larapardakht'
         );
 
-        $this->app->singleton(PaymentManager::class, function ($app) {
+        // Scoped binding creates one manager per request/job lifecycle and
+        // avoids leaking mutable state in long-lived workers.
+        $this->app->scoped(PaymentManager::class, function ($app) {
             return new PaymentManager($app);
         });
     }
