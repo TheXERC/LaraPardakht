@@ -163,6 +163,8 @@ class ZibalGateway implements GatewayInterface
      */
     public function verify(): ReceiptInterface
     {
+        $expectedAmount = $this->requirePositiveAmount();
+
         try {
             $response = Http::acceptJson()
                 ->post(self::BASE_URL . self::VERIFY_ENDPOINT, $this->buildVerifyData());
@@ -192,7 +194,7 @@ class ZibalGateway implements GatewayInterface
             );
         }
 
-        $this->assertVerifyConsistency($body, $result ?? 0);
+        $this->assertVerifyConsistency($body, $result ?? 0, $expectedAmount);
 
         $referenceId = $this->extractReferenceId($body);
 
@@ -204,11 +206,14 @@ class ZibalGateway implements GatewayInterface
             );
         }
 
+        $receiptRawData = $body;
+        $receiptRawData['already_verified'] = $result === self::ALREADY_VERIFIED_CODE;
+
         return new Receipt(
             referenceId: $referenceId,
             driver: 'zibal',
             date: new \DateTimeImmutable(),
-            rawData: $body,
+            rawData: $receiptRawData,
         );
     }
 
@@ -379,14 +384,12 @@ class ZibalGateway implements GatewayInterface
      * @return void
      * @throws InvalidPaymentException
      */
-    protected function assertVerifyConsistency(array $body, int $result): void
+    protected function assertVerifyConsistency(array $body, int $result, int $expectedAmount): void
     {
-        $expectedAmount = $this->invoice->getAmount();
         $responseAmount = $body['amount'] ?? null;
 
         if (
-            $expectedAmount > 0
-            && is_numeric($responseAmount)
+            is_numeric($responseAmount)
             && (int) $responseAmount !== $expectedAmount
         ) {
             throw new InvalidPaymentException(
@@ -413,5 +416,24 @@ class ZibalGateway implements GatewayInterface
                 rawData: $body,
             );
         }
+    }
+
+    /**
+     * Ensure invoice amount is set before verify.
+     *
+     * @return int
+     * @throws InvalidPaymentException
+     */
+    protected function requirePositiveAmount(): int
+    {
+        $amount = $this->invoice->getAmount();
+
+        if ($amount <= 0) {
+            throw new InvalidPaymentException(
+                message: 'Invoice amount is required and must be greater than zero before calling verify.',
+            );
+        }
+
+        return $amount;
     }
 }
