@@ -157,6 +157,12 @@ test('amount and transactionId shortcuts work for verify', function () {
         ->and($receipt->getReferenceId())->toBe('777');
 });
 
+test('verify requires amount greater than zero', function () {
+    $manager = app(PaymentManager::class);
+
+    $manager->transactionId('A00000000000000000000000000001234567')->verify();
+})->throws(InvalidPaymentException::class, 'Invoice amount is required and must be greater than zero before calling verify.');
+
 // ── Purchase Callback Tests ─────────────────────────────────
 
 test('purchase callback receives driver and transaction id', function () {
@@ -233,6 +239,29 @@ test('PaymentVerified event is fired after verify', function () {
         return $event->receipt->getReferenceId() === '201'
             && $event->driver === 'zarinpal';
     });
+});
+
+test('PaymentVerified event is not fired when gateway reports already verified', function () {
+    Event::fake([PaymentVerified::class]);
+
+    Http::fake([
+        'payment.zarinpal.com/pg/v4/payment/verify.json' => Http::response([
+            'data' => [
+                'code' => 101,
+                'ref_id' => 201,
+            ],
+            'errors' => [],
+        ]),
+    ]);
+
+    $manager = app(PaymentManager::class);
+    $receipt = $manager->amount(50000)
+        ->transactionId('A00000000000000000000000000001234567')
+        ->verify();
+
+    expect($receipt->getRawData()['already_verified'])->toBeTrue();
+
+    Event::assertNotDispatched(PaymentVerified::class);
 });
 
 // ── Pay Chain Tests ─────────────────────────────────────────
