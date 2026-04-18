@@ -192,6 +192,8 @@ class ZibalGateway implements GatewayInterface
             );
         }
 
+        $this->assertVerifyConsistency($body, $result ?? 0);
+
         $referenceId = $this->extractReferenceId($body);
 
         if ($referenceId === '') {
@@ -364,5 +366,52 @@ class ZibalGateway implements GatewayInterface
         }
 
         return '';
+    }
+
+    /**
+     * Validate gateway verify response consistency against known local invoice data.
+     *
+     * For backward compatibility, amount is checked only when invoice amount is set (> 0)
+     * and gateway response includes numeric amount.
+     *
+     * @param array<string, mixed> $body
+     * @param int $result
+     * @return void
+     * @throws InvalidPaymentException
+     */
+    protected function assertVerifyConsistency(array $body, int $result): void
+    {
+        $expectedAmount = $this->invoice->getAmount();
+        $responseAmount = $body['amount'] ?? null;
+
+        if (
+            $expectedAmount > 0
+            && is_numeric($responseAmount)
+            && (int) $responseAmount !== $expectedAmount
+        ) {
+            throw new InvalidPaymentException(
+                message: 'Verified payment amount does not match the expected invoice amount.',
+                code: $result,
+                rawData: $body,
+            );
+        }
+
+        $details = $this->invoice->getDetails();
+        $expectedOrderId = $details['order_id'] ?? null;
+        $responseOrderId = $body['orderId'] ?? null;
+
+        if (
+            is_scalar($expectedOrderId)
+            && (string) $expectedOrderId !== ''
+            && is_scalar($responseOrderId)
+            && (string) $responseOrderId !== ''
+            && (string) $responseOrderId !== (string) $expectedOrderId
+        ) {
+            throw new InvalidPaymentException(
+                message: 'Verified payment order ID does not match the expected invoice order ID.',
+                code: $result,
+                rawData: $body,
+            );
+        }
     }
 }
