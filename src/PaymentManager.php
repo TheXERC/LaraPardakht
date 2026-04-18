@@ -161,6 +161,7 @@ class PaymentManager
      * Redirect the user to the gateway payment page.
      *
      * @return RedirectResponse
+     * @throws \LaraPardakht\Exceptions\InvalidPaymentException
      */
     public function pay(): RedirectResponse
     {
