@@ -169,6 +169,7 @@ test('verify success returns receipt with reference id', function () {
 
     $gateway = createZibalGateway();
     $invoice = createZibalInvoice();
+    $invoice->detail('order_id', 'ORD-456');
     $invoice->transactionId('15966442233311');
     $gateway->setInvoice($invoice);
 
@@ -186,6 +187,46 @@ test('verify success returns receipt with reference id', function () {
             && $request['trackId'] === '15966442233311';
     });
 });
+
+test('verify fails when response amount does not match invoice amount', function () {
+    Http::fake([
+        'gateway.zibal.ir/v1/verify' => Http::response([
+            'amount' => 150000,
+            'result' => 100,
+            'status' => 1,
+            'refNumber' => 123456789,
+            'message' => 'success',
+        ]),
+    ]);
+
+    $gateway = createZibalGateway();
+    $invoice = createZibalInvoice();
+    $invoice->transactionId('15966442233311');
+    $gateway->setInvoice($invoice);
+
+    $gateway->verify();
+})->throws(InvalidPaymentException::class, 'Verified payment amount does not match the expected invoice amount.');
+
+test('verify fails when response order id does not match expected invoice order id', function () {
+    Http::fake([
+        'gateway.zibal.ir/v1/verify' => Http::response([
+            'amount' => 160000,
+            'result' => 100,
+            'status' => 1,
+            'refNumber' => 123456789,
+            'orderId' => 'ORD-999',
+            'message' => 'success',
+        ]),
+    ]);
+
+    $gateway = createZibalGateway();
+    $invoice = createZibalInvoice();
+    $invoice->detail('order_id', 'ORD-456');
+    $invoice->transactionId('15966442233311');
+    $gateway->setInvoice($invoice);
+
+    $gateway->verify();
+})->throws(InvalidPaymentException::class, 'Verified payment order ID does not match the expected invoice order ID.');
 
 test('verify with code 201 (already verified) still returns receipt', function () {
     Http::fake([

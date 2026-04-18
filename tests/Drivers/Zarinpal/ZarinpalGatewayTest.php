@@ -196,6 +196,13 @@ test('verify success returns receipt with reference id', function () {
         ->and($receipt->getDriver())->toBe('zarinpal')
         ->and($receipt->getRawData())->toHaveKey('card_pan')
         ->and($receipt->getRawData()['card_pan'])->toBe('502229******5995');
+
+    Http::assertSent(function ($request) {
+        return str_contains($request->url(), 'payment.zarinpal.com/pg/v4/payment/verify.json')
+            && $request['merchant_id'] === 'test-merchant-id-xxxx-xxxx-xxxxxxxxxxxx'
+            && $request['amount'] === 50000
+            && $request['authority'] === 'A00000000000000000000000000001234567';
+    });
 });
 
 test('verify with code 101 (already verified) still returns receipt', function () {
