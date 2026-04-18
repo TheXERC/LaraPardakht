@@ -139,9 +139,12 @@ return $redirect->toJson();
 - Facade root caching is disabled for `Payment`, so each call resolves from the current container scope.
 - `pay()` now validates that a transaction identifier exists and throws `InvalidPaymentException` when missing.
 - `verify()` now validates that a reference identifier exists in successful gateway responses and throws `InvalidPaymentException` when missing.
-- `Zibal` verify now performs consistency checks against local invoice data when available:
-    - If invoice amount is set (> 0) and gateway returns `amount`, values must match.
+- `verify()` now requires a positive invoice amount (`amount > 0`) before contacting the gateway.
+- `Zibal` verify performs consistency checks against local invoice data:
+    - Gateway `amount` must match local invoice amount when returned by gateway.
     - If invoice `order_id` detail is set and gateway returns `orderId`, values must match.
+- Already-verified responses (`code=101` for Zarinpal, `result=201` for Zibal) are still accepted as valid verify results, but now include `already_verified=true` in receipt raw data.
+- `PaymentVerified` event is dispatched only for first-time successful verification, not for already-verified gateway responses.
 - Malformed/non-JSON gateway responses are handled safely and converted to typed exceptions (`PurchaseFailedException` / `InvalidPaymentException`).
 
 ### Compatibility Impact
@@ -150,7 +153,11 @@ No public method signatures changed and no config changes are required.
 
 If your integration previously called `pay()` before a successful `purchase()`, or relied on low-level runtime errors for malformed gateway responses, update your error handling to catch typed gateway exceptions.
 
-For `Zibal` only: verify may now throw `InvalidPaymentException` when gateway-reported `amount` / `orderId` conflicts with your local invoice data. This is a security hardening change. No API update is required on your side, but ensure your verify flow handles this exception and keeps local invoice values authoritative.
+`verify()` now requires invoice amount to be set to a positive value before calling it. If you were verifying only by transaction identifier, update your flow to include the original invoice amount.
+
+`PaymentVerified` is no longer dispatched for gateway responses that indicate the transaction was already verified (`code=101` / `result=201`). If you had listeners relying on repeated verify calls, make sure they depend on your own idempotent persistence flow instead of repeated event dispatches.
+
+For `Zibal`: verify may throw `InvalidPaymentException` when gateway-reported `amount` / `orderId` conflicts with your local invoice data. This is a security hardening change. No API update is required on your side, but ensure your verify flow handles this exception and keeps local invoice values authoritative.
 
 ## Gateway Codes (English Translations)
 
