@@ -286,6 +286,35 @@ test('purchase and pay chain works', function () {
         ->and($redirect->getUrl())->toContain('A00000000000000000000000000001234567');
 });
 
+test('purchase and pay chain works for idpay via runtime driver switch', function () {
+    Http::fake([
+        'api.idpay.ir/v1.1/payment' => Http::response([
+            'id' => 'd2e353189823079e1e4181772cff5292',
+            'link' => 'https://idpay.ir/p/ws-sandbox/d2e353189823079e1e4181772cff5292',
+        ], 201),
+    ]);
+
+    $manager = app(PaymentManager::class);
+    $invoice = (new Invoice())
+        ->amount(50000)
+        ->description('Test IDPay order')
+        ->detail('order_id', 'ORD-9001');
+
+    $redirect = $manager->via('idpay')->purchase($invoice)->pay();
+
+    expect($redirect)->toBeInstanceOf(RedirectResponse::class)
+        ->and($redirect->getUrl())
+        ->toBe('https://idpay.ir/p/ws-sandbox/d2e353189823079e1e4181772cff5292');
+
+    Http::assertSent(function ($request) {
+        return str_contains($request->url(), 'api.idpay.ir/v1.1/payment')
+            && $request['order_id'] === 'ORD-9001'
+            && $request['amount'] === 50000
+            && $request['callback'] === 'https://example.com/callback'
+            && $request->hasHeader('X-API-KEY', 'test-idpay-api-key');
+    });
+});
+
 test('pay without transaction id throws InvalidPaymentException', function () {
     $manager = app(PaymentManager::class);
 
