@@ -1,5 +1,7 @@
 # LaraPardakht
 
+[English](README.md) | [فارسی](README.fa.md)
+
 A modern, extensible payment gateway integration package for Laravel 11, 12, and 13, supporting Iranian payment providers.
 
 ## Features
