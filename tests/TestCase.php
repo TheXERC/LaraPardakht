@@ -62,9 +62,17 @@ abstract class TestCase extends BaseTestCase
             'callback_url' => 'https://example.com/callback',
         ]);
 
+        $app['config']->set('larapardakht.drivers.idpay', [
+            'api_key' => 'test-idpay-api-key',
+            'sandbox' => false,
+            'description' => 'Test payment via IDPay',
+            'callback_url' => 'https://example.com/callback',
+        ]);
+
         $app['config']->set('larapardakht.map', [
             'zarinpal' => \LaraPardakht\Drivers\Zarinpal\ZarinpalGateway::class,
             'zibal' => \LaraPardakht\Drivers\Zibal\ZibalGateway::class,
+            'idpay' => \LaraPardakht\Drivers\IDPay\IDPayGateway::class,
         ]);
     }
 }

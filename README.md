@@ -2,6 +2,15 @@
 
 [English](README.md) | [فارسی](README.fa.md)
 
+## Badge Wall
+
+[![Packagist Version](https://img.shields.io/packagist/v/larapardakht/larapardakht?label=Packagist&color=0E9F6E)](https://packagist.org/packages/larapardakht/larapardakht)
+[![Total Downloads](https://img.shields.io/packagist/dt/larapardakht/larapardakht?label=Downloads&color=2563EB)](https://packagist.org/packages/larapardakht/larapardakht)
+[![PHP Version](https://img.shields.io/badge/PHP-8.2%2B-777BB4?logo=php&logoColor=white)](https://www.php.net/releases/)
+[![Laravel](https://img.shields.io/badge/Laravel-11%20%7C%2012%20%7C%2013-FF2D20?logo=laravel&logoColor=white)](https://laravel.com/)
+[![Tests](https://img.shields.io/badge/Tests-Pest-16A34A)](https://pestphp.com/)
+[![License](https://img.shields.io/badge/License-MIT-F59E0B)](LICENSE)
+
 A modern, extensible payment gateway integration package for Laravel 11, 12, and 13, supporting Iranian payment providers.
 
 ## Features
@@ -19,6 +28,7 @@ A modern, extensible payment gateway integration package for Laravel 11, 12, and
 |---------|:-----------:|:------------:|
 | [Zarinpal](https://www.zarinpal.com/) | ✅ | ✅ |
 | [Zibal](https://zibal.ir/) | ✅ | ✅ |
+| [IDPay](https://idpay.ir/) | ✅ | ✅ |
 
 More gateways coming soon! You can also [create custom drivers](#creating-custom-drivers).
 
@@ -56,6 +66,10 @@ ZARINPAL_SANDBOX=false
 ZIBAL_MERCHANT=your-zibal-merchant
 ZIBAL_SANDBOX=false
 
+# IDPay
+IDPAY_API_KEY=your-idpay-api-key
+IDPAY_SANDBOX=false
+
 # Shared
 PAYMENT_CALLBACK_URL=https://yoursite.com/payment/callback
 ```
@@ -77,6 +91,12 @@ $invoice->amount(50000)
 return Payment::purchase($invoice, function ($driver, $transactionId) {
     // Persist $transactionId in your own storage (for example, your order record)
 })->pay()->render();
+```
+
+For `idpay`, `order_id` is required by the API. Set it on invoice details before purchase/verify:
+
+```php
+$invoice->detail('order_id', 'ORD-123');
 ```
 
 ### Verify Payment
@@ -144,7 +164,7 @@ return $redirect->toJson();
 - `Zibal` verify performs consistency checks against local invoice data:
     - Gateway `amount` must match local invoice amount when returned by gateway.
     - If invoice `order_id` detail is set and gateway returns `orderId`, values must match.
-- Already-verified responses (`code=101` for Zarinpal, `result=201` for Zibal) are still accepted as valid verify results, but now include `already_verified=true` in receipt raw data.
+- Already-verified responses (`code=101` for Zarinpal, `result=201` for Zibal, `status=101` for IDPay) are still accepted as valid verify results, but now include `already_verified=true` in receipt raw data.
 - `PaymentVerified` event is dispatched only for first-time successful verification, not for already-verified gateway responses.
 - Malformed/non-JSON gateway responses are handled safely and converted to typed exceptions (`PurchaseFailedException` / `InvalidPaymentException`).
 
@@ -156,7 +176,7 @@ If your integration previously called `pay()` before a successful `purchase()`, 
 
 `verify()` now requires invoice amount to be set to a positive value before calling it. If you were verifying only by transaction identifier, update your flow to include the original invoice amount.
 
-`PaymentVerified` is no longer dispatched for gateway responses that indicate the transaction was already verified (`code=101` / `result=201`). If you had listeners relying on repeated verify calls, make sure they depend on your own idempotent persistence flow instead of repeated event dispatches.
+`PaymentVerified` is no longer dispatched for gateway responses that indicate the transaction was already verified (`code=101` / `result=201` / `status=101`). If you had listeners relying on repeated verify calls, make sure they depend on your own idempotent persistence flow instead of repeated event dispatches.
 
 For `Zibal`: verify may throw `InvalidPaymentException` when gateway-reported `amount` / `orderId` conflicts with your local invoice data. This is a security hardening change. No API update is required on your side, but ensure your verify flow handles this exception and keeps local invoice values authoritative.
 
@@ -264,6 +284,23 @@ These translations are used by the package when possible so exception messages a
 | 16 | Refund in progress |
 | 18 | Reversed |
 | 21 | Invalid merchant |
+
+### IDPay - Transaction Status Codes
+
+| Status | Meaning |
+|---:|---|
+| 1 | Payment not made |
+| 2 | Payment failed |
+| 3 | Error occurred |
+| 4 | Blocked |
+| 5 | Refunded to payer |
+| 6 | System refund |
+| 7 | Canceled by payer |
+| 8 | Redirected to payment gateway |
+| 10 | Waiting for verification |
+| 100 | Verified |
+| 101 | Already verified |
+| 200 | Settled to payee |
 
 ## Creating Custom Drivers
 

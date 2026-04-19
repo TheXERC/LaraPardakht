@@ -2,6 +2,15 @@
 
 [English](README.md) | [فارسی](README.fa.md)
 
+## دیوار نشان ها (Badge Wall)
+
+[![نسخه Packagist](https://img.shields.io/packagist/v/larapardakht/larapardakht?label=Packagist&color=0E9F6E)](https://packagist.org/packages/larapardakht/larapardakht)
+[![تعداد دانلود](https://img.shields.io/packagist/dt/larapardakht/larapardakht?label=Downloads&color=2563EB)](https://packagist.org/packages/larapardakht/larapardakht)
+[![نسخه PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?logo=php&logoColor=white)](https://www.php.net/releases/)
+[![Laravel](https://img.shields.io/badge/Laravel-11%20%7C%2012%20%7C%2013-FF2D20?logo=laravel&logoColor=white)](https://laravel.com/)
+[![تست ها](https://img.shields.io/badge/Tests-Pest-16A34A)](https://pestphp.com/)
+[![مجوز](https://img.shields.io/badge/License-MIT-F59E0B)](LICENSE)
+
 یک پکیج مدرن و توسعه‌پذیر برای یکپارچه‌سازی درگاه‌های پرداخت در Laravel 11، 12 و 13 با پشتیبانی از ارائه‌دهنده‌های پرداخت ایرانی.
 
 ## ویژگی‌ها
@@ -19,6 +28,7 @@
 |---------|:-----------:|:------------:|
 | [زرین‌پال](https://www.zarinpal.com/) | ✅ | ✅ |
 | [زیبال](https://zibal.ir/) | ✅ | ✅ |
+| [آیدی‌پی](https://idpay.ir/) | ✅ | ✅ |
 
 درگاه‌های بیشتری در راه هستند! همچنین می‌توانید [درایور سفارشی](#ساخت-درایور-سفارشی) بسازید.
 
@@ -56,6 +66,10 @@ ZARINPAL_SANDBOX=false
 ZIBAL_MERCHANT=your-zibal-merchant
 ZIBAL_SANDBOX=false
 
+# IDPay
+IDPAY_API_KEY=your-idpay-api-key
+IDPAY_SANDBOX=false
+
 # Shared
 PAYMENT_CALLBACK_URL=https://yoursite.com/payment/callback
 ```
@@ -77,6 +91,12 @@ $invoice->amount(50000)
 return Payment::purchase($invoice, function ($driver, $transactionId) {
     // شناسه تراکنش را در ذخیره‌سازی خودتان نگه‌داری کنید (مثلا رکورد سفارش)
 })->pay()->render();
+```
+
+برای `idpay` مقدار `order_id` طبق API اجباری است. قبل از purchase/verify آن را در جزئیات فاکتور قرار دهید:
+
+```php
+$invoice->detail('order_id', 'ORD-123');
 ```
 
 ### تایید پرداخت
@@ -144,7 +164,7 @@ return $redirect->toJson();
 - در `Zibal` هنگام verify بررسی سازگاری با داده‌های محلی انجام می‌شود:
     - اگر در پاسخ درگاه `amount` موجود باشد، باید با مبلغ فاکتور محلی برابر باشد.
     - اگر در جزئیات فاکتور `order_id` تنظیم شده باشد و درگاه `orderId` برگرداند، باید مقدارها برابر باشند.
-- پاسخ‌های «قبلا تایید شده» (`code=101` برای Zarinpal و `result=201` برای Zibal) همچنان معتبرند، اما مقدار `already_verified=true` در `rawData` رسید اضافه می‌شود.
+- پاسخ‌های «قبلا تایید شده» (`code=101` برای Zarinpal، `result=201` برای Zibal و `status=101` برای IDPay) همچنان معتبرند، اما مقدار `already_verified=true` در `rawData` رسید اضافه می‌شود.
 - رویداد `PaymentVerified` فقط برای تایید موفقِ بار اول dispatch می‌شود و برای پاسخ‌های already-verified ارسال نمی‌شود.
 - پاسخ‌های نامعتبر/غیر JSON درگاه به شکل امن مدیریت شده و به استثناهای تایپ‌شده (`PurchaseFailedException` / `InvalidPaymentException`) تبدیل می‌شوند.
 
@@ -156,7 +176,7 @@ return $redirect->toJson();
 
 اکنون `verify()` نیاز دارد مبلغ فاکتور مثبت و تنظیم‌شده باشد. اگر قبلا فقط با شناسه تراکنش verify می‌کردید، مبلغ اصلی فاکتور را نیز در جریان verify وارد کنید.
 
-`PaymentVerified` دیگر برای پاسخ‌هایی که نشان‌دهنده «قبلا تایید شده» هستند (`code=101` / `result=201`) dispatch نمی‌شود. اگر listener شما به verify تکراری وابسته بوده، منطق idempotent خودتان را در لایه persistence مبنا قرار دهید.
+`PaymentVerified` دیگر برای پاسخ‌هایی که نشان‌دهنده «قبلا تایید شده» هستند (`code=101` / `result=201` / `status=101`) dispatch نمی‌شود. اگر listener شما به verify تکراری وابسته بوده، منطق idempotent خودتان را در لایه persistence مبنا قرار دهید.
 
 برای `Zibal`: اگر `amount` یا `orderId` گزارش‌شده از درگاه با داده محلی ناسازگار باشد، verify ممکن است `InvalidPaymentException` پرتاب کند. این یک بهبود امنیتی است. API سمت شما تغییری نیاز ندارد، ولی باید این exception را مدیریت کنید.
 
@@ -264,6 +284,23 @@ return $redirect->toJson();
 | 16 | بازپرداخت در حال انجام |
 | 18 | برگشت خورده |
 | 21 | Merchant نامعتبر |
+
+### IDPay - کدهای وضعیت تراکنش
+
+| وضعیت | معنی |
+|---:|---|
+| 1 | پرداخت انجام نشده |
+| 2 | پرداخت ناموفق |
+| 3 | خطا رخ داده |
+| 4 | بلوکه |
+| 5 | برگشت به پرداخت‌کننده |
+| 6 | برگشت سیستمی |
+| 7 | انصراف پرداخت‌کننده |
+| 8 | انتقال به درگاه پرداخت |
+| 10 | در انتظار تایید پرداخت |
+| 100 | پرداخت تایید شده |
+| 101 | پرداخت قبلا تایید شده |
+| 200 | مبلغ به دریافت‌کننده واریز شده |
 
 ## ساخت درایور سفارشی
 

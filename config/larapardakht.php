@@ -44,6 +44,13 @@ return [
             'callback_url' => env('PAYMENT_CALLBACK_URL', ''),
         ],
 
+        'idpay' => [
+            'api_key' => env('IDPAY_API_KEY', ''),
+            'sandbox' => env('IDPAY_SANDBOX', false),
+            'description' => 'Payment via IDPay',
+            'callback_url' => env('PAYMENT_CALLBACK_URL', ''),
+        ],
+
     ],
 
     /*
@@ -60,6 +67,7 @@ return [
     'map' => [
         'zarinpal' => \LaraPardakht\Drivers\Zarinpal\ZarinpalGateway::class,
         'zibal' => \LaraPardakht\Drivers\Zibal\ZibalGateway::class,
+        'idpay' => \LaraPardakht\Drivers\IDPay\IDPayGateway::class,
     ],
 
 ];
