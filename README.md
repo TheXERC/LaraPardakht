@@ -1,13 +1,15 @@
 # LaraPardakht
 
-A modern, extensible payment gateway integration package for Laravel 12, supporting Iranian payment providers.
+[English](README.md) | [فارسی](README.fa.md)
+
+A modern, extensible payment gateway integration package for Laravel 11, 12, and 13, supporting Iranian payment providers.
 
 ## Features
 
 - **Driver-based architecture** — easily add new gateways without modifying core code
 - **Fluent API** — clean, chainable interface for purchases, payments and verifications
 - **Sandbox/test support** — every driver supports sandbox mode out of the box
-- **Events** — fires events after purchase and verification for easy integration
+- **Events** — fires events after purchase and first-time successful verification for easy integration
 - **Runtime configuration** — switch drivers and override settings on the fly
 - **Typed exceptions** — distinct exception classes for different failure scenarios
 
@@ -23,7 +25,7 @@ More gateways coming soon! You can also [create custom drivers](#creating-custom
 ## Requirements
 
 - PHP 8.2+
-- Laravel 11 or 12
+- Laravel 11, 12, or 13
 
 ## Installation
 
@@ -73,8 +75,7 @@ $invoice->amount(50000)
     ->detail('email', 'customer@example.com');
 
 return Payment::purchase($invoice, function ($driver, $transactionId) {
-    // Store $transactionId in your database
-    Order::find($orderId)->update(['transaction_id' => $transactionId]);
+    // Persist $transactionId in your own storage (for example, your order record)
 })->pay()->render();
 ```
 
@@ -352,7 +353,7 @@ Add tests under `tests/Drivers/MyGateway/` using `Http::fake()` to mock API call
 | Event | When Fired |
 |-------|-----------|
 | `PaymentPurchased` | After a successful purchase (transaction ID obtained) |
-| `PaymentVerified` | After a successful payment verification |
+| `PaymentVerified` | After a first-time successful payment verification (`already_verified` responses do not dispatch this event) |
 
 ```php
 use LaraPardakht\Events\PaymentPurchased;
