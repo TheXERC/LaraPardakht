@@ -2,6 +2,15 @@
 
 [English](README.md) | [فارسی](README.fa.md)
 
+## دیوار نشان ها (Badge Wall)
+
+[![نسخه Packagist](https://img.shields.io/packagist/v/larapardakht/larapardakht?label=Packagist&color=0E9F6E)](https://packagist.org/packages/larapardakht/larapardakht)
+[![تعداد دانلود](https://img.shields.io/packagist/dt/larapardakht/larapardakht?label=Downloads&color=2563EB)](https://packagist.org/packages/larapardakht/larapardakht)
+[![نسخه PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?logo=php&logoColor=white)](https://www.php.net/releases/)
+[![Laravel](https://img.shields.io/badge/Laravel-11%20%7C%2012%20%7C%2013-FF2D20?logo=laravel&logoColor=white)](https://laravel.com/)
+[![تست ها](https://img.shields.io/badge/Tests-Pest-16A34A)](https://pestphp.com/)
+[![مجوز](https://img.shields.io/badge/License-MIT-F59E0B)](LICENSE)
+
 یک پکیج مدرن و توسعه‌پذیر برای یکپارچه‌سازی درگاه‌های پرداخت در Laravel 11، 12 و 13 با پشتیبانی از ارائه‌دهنده‌های پرداخت ایرانی.
 
 ## ویژگی‌ها

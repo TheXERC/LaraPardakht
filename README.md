@@ -2,6 +2,15 @@
 
 [English](README.md) | [فارسی](README.fa.md)
 
+## Badge Wall
+
+[![Packagist Version](https://img.shields.io/packagist/v/larapardakht/larapardakht?label=Packagist&color=0E9F6E)](https://packagist.org/packages/larapardakht/larapardakht)
+[![Total Downloads](https://img.shields.io/packagist/dt/larapardakht/larapardakht?label=Downloads&color=2563EB)](https://packagist.org/packages/larapardakht/larapardakht)
+[![PHP Version](https://img.shields.io/badge/PHP-8.2%2B-777BB4?logo=php&logoColor=white)](https://www.php.net/releases/)
+[![Laravel](https://img.shields.io/badge/Laravel-11%20%7C%2012%20%7C%2013-FF2D20?logo=laravel&logoColor=white)](https://laravel.com/)
+[![Tests](https://img.shields.io/badge/Tests-Pest-16A34A)](https://pestphp.com/)
+[![License](https://img.shields.io/badge/License-MIT-F59E0B)](LICENSE)
+
 A modern, extensible payment gateway integration package for Laravel 11, 12, and 13, supporting Iranian payment providers.
 
 ## Features
